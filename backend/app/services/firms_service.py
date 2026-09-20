@@ -33,7 +33,7 @@ class FIRMSService:
         logger.info(f"FIRMS request started: source={source}, country={country}, days={days}")
 
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with httpx.AsyncClient(timeout=settings.FIRMS_TIMEOUT_SECONDS) as client:
                 response = await client.get(url)
 
             if response.status_code == 200:

@@ -9,6 +9,7 @@ from backend.app.models.persistence import (
     PersistentThermalAnomaly,
     PersistentCluster
 )
+from backend.app.config import settings
 
 def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculates great-circle distance between two point coordinates in kilometers."""
@@ -23,8 +24,9 @@ def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) ->
 class PersistenceEngine:
     """Engine for spatial clustering and persistent thermal source identification."""
 
-    def __init__(self, proximity_radius_km: float = 1.0):
+    def __init__(self, proximity_radius_km: float = settings.PERSISTENCE_DISTANCE_THRESHOLD_KM):
         self.proximity_radius_km = proximity_radius_km
+        self.time_window_days = settings.PERSISTENCE_TIME_WINDOW_DAYS
 
     def _generate_cluster_id(self, lat: float, lon: float) -> str:
         raw = f"{round(lat, 2)}_{round(lon, 2)}"
@@ -80,6 +82,9 @@ class PersistenceEngine:
             first_seen_str = dates[0].strftime("%Y-%m-%d")
             last_seen_str = dates[-1].strftime("%Y-%m-%d")
             duration_days = (dates[-1] - dates[0]).days
+
+            if duration_days > self.time_window_days:
+                continue
 
             obs_count = len(cluster_members)
 

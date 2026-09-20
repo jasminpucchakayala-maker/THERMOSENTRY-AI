@@ -24,6 +24,12 @@ class ThermalClassification(BaseModel):
     severity_level: SeverityLevel = Field(..., description="Assessed thermal risk severity level")
     features: Dict[str, float] = Field(..., description="Extracted numerical features used for classification decision")
     explanation: str = Field(..., description="Human-readable decision rationale explaining the classification")
+    method: str = Field(default="baseline", description="Classification method; baseline means transparent rule-based logic")
+    evidence: List[str] = Field(default_factory=list, description="Observed evidence used by the classifier")
+    reasoning: str = Field(default="", description="Transparent classification reasoning")
+    class_name: str = Field(default="Uncertain Anomaly", alias="class", description="Canonical frontend classification label")
+
+    model_config = {"populate_by_name": True}
 
 class ClassifiedThermalAnomaly(ThermalAnomaly):
     """Thermal anomaly combined with AI classification results."""

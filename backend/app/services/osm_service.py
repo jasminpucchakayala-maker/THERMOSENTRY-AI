@@ -40,9 +40,17 @@ class OSMService:
             self.osm_engine.get_industrial_context(a.latitude, a.longitude, use_live=use_live_osm)
             for a in anomalies
         ]
-        contexts: List[OSMIndustrialContext] = await asyncio.gather(*tasks)
+        contexts: List[OSMIndustrialContext] = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for anomaly, ctx in zip(anomalies, contexts):
+        safe_contexts: List[OSMIndustrialContext] = []
+        for ctx in contexts:
+            if isinstance(ctx, OSMIndustrialContext):
+                safe_contexts.append(ctx)
+            else:
+                logger.warning(f"OSM context lookup failed for one anomaly: {ctx}")
+                safe_contexts.append(await self.osm_engine.get_industrial_context(0.0, 0.0, use_live=False))
+
+        for anomaly, ctx in zip(anomalies, safe_contexts):
             enriched = EnrichedThermalAnomaly(
                 **anomaly.model_dump(),
                 industrial_context=ctx

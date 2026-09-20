@@ -109,16 +109,34 @@ class ThermalClassifier:
 
         # Format human-readable explanation
         explanation_text = (
-            f"Classified as {max_category.value} with {int(confidence_score * 100)}% AI confidence. "
+            f"Classified as {max_category.value} with {int(confidence_score * 100)}% baseline confidence. "
             + (reasons[0] if reasons else f"Thermal output of {frp} MW and brightness temperature {brightness}K.")
         )
+
+        canonical_names = {
+            EventCategory.WILDFIRE: "Vegetation Fire",
+            EventCategory.INDUSTRIAL_FLARE: "Gas Flare",
+            EventCategory.AGRICULTURAL_BURNING: "Agricultural Burning",
+            EventCategory.URBAN_LANDFILL: "Industrial Fire",
+            EventCategory.VOLCANIC_ACTIVITY: "Uncertain Anomaly",
+            EventCategory.SOLAR_GLINT_NOISE: "Uncertain Anomaly",
+        }
+        evidence = [
+            f"FRP={frp} MW",
+            f"brightness_temperature={brightness} K",
+            f"confidence={confidence}%",
+            f"day_night={anomaly.day_night or 'unknown'}",
+        ]
+        reasoning = reasons[0] if reasons else f"Thermal output of {frp} MW and brightness temperature {brightness}K."
 
         return ThermalClassification(
             category=max_category,
             confidence_score=confidence_score,
             severity_level=severity,
             features=feats,
-            explanation=explanation_text
+            explanation=explanation_text,
+            method="baseline", evidence=evidence, reasoning=reasoning,
+            class_name=canonical_names[max_category]
         )
 
     def classify_classified_anomaly(self, anomaly: ThermalAnomaly) -> ClassifiedThermalAnomaly:

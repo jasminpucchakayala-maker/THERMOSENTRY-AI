@@ -18,6 +18,22 @@ class Settings(BaseSettings):
     FIRMS_DEFAULT_SOURCE: str = os.getenv("FIRMS_DEFAULT_SOURCE", "VIIRS_SNPP_NRT")
     FIRMS_DEFAULT_DAYS: int = int(os.getenv("FIRMS_DEFAULT_DAYS", "1"))
     FIRMS_DEFAULT_COUNTRY: str = os.getenv("FIRMS_DEFAULT_COUNTRY", "IND")
+    FIRMS_TIMEOUT_SECONDS: float = float(os.getenv("FIRMS_TIMEOUT_SECONDS", "15"))
+
+    # Persistence analysis settings
+    PERSISTENCE_DISTANCE_THRESHOLD_KM: float = float(os.getenv("PERSISTENCE_DISTANCE_THRESHOLD_KM", "1.0"))
+    PERSISTENCE_TIME_WINDOW_DAYS: int = int(os.getenv("PERSISTENCE_TIME_WINDOW_DAYS", "10"))
+
+    # OpenStreetMap Overpass settings
+    OVERPASS_URL: str = os.getenv("OVERPASS_URL", "https://overpass-api.de/api/interpreter")
+    OSM_SEARCH_RADIUS_KM: float = float(os.getenv("OSM_SEARCH_RADIUS_KM", "5.0"))
+    OSM_TIMEOUT_SECONDS: float = float(os.getenv("OSM_TIMEOUT_SECONDS", "6"))
+
+    # Risk weights are configurable, but unavailable factors are never scored.
+    RISK_WEIGHT_THERMAL_INTENSITY: float = float(os.getenv("RISK_WEIGHT_THERMAL_INTENSITY", "0.45"))
+    RISK_WEIGHT_PERSISTENCE: float = float(os.getenv("RISK_WEIGHT_PERSISTENCE", "0.20"))
+    RISK_WEIGHT_INDUSTRIAL_PROXIMITY: float = float(os.getenv("RISK_WEIGHT_INDUSTRIAL_PROXIMITY", "0.20"))
+    RISK_WEIGHT_CONFIDENCE: float = float(os.getenv("RISK_WEIGHT_CONFIDENCE", "0.15"))
 
     # Data paths
     RAW_DATA_DIR: Path = DATA_DIR / "raw"

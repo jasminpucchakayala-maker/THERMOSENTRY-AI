@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Body
+from fastapi import APIRouter, Query, Body, HTTPException
 from typing import Optional
 from backend.app.models.osm_context import EnrichedThermalAnomaly
 from backend.app.models.decision_intelligence import (
@@ -8,6 +8,8 @@ from backend.app.models.decision_intelligence import (
 )
 from backend.app.services.risk_service import risk_service
 from backend.app.ml.risk_engine import risk_engine
+from backend.app.models.thermal_anomaly import ThermalAnomaly
+from backend.app.models.report import DecisionAnalyzeRequest
 
 router = APIRouter(prefix="/api", tags=["Decision Intelligence Pipeline"])
 
@@ -61,3 +63,20 @@ async def analyze_custom_event_endpoint(
     Evaluates a single thermal anomaly event payload on demand, calculating composite risk score and operational recommendations.
     """
     return risk_engine.evaluate_decision_anomaly(anomaly)
+
+
+@router.post("/decision/analyze", response_model=DecisionIntelligenceAnomaly, summary="Analyze One Thermal Event")
+async def analyze_decision_endpoint(request: DecisionAnalyzeRequest = Body(...)):
+    """Analyze a normalized anomaly payload or resolve an existing event ID."""
+    if request.anomaly is not None:
+        try:
+            anomaly = ThermalAnomaly.model_validate(request.anomaly)
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=f"Invalid thermal anomaly: {exc}") from exc
+        return await risk_service.analyze_single_anomaly(anomaly, use_live_osm=True)
+    if request.event_id:
+        try:
+            return await risk_service.get_decision_event(request.event_id, use_live_osm=True)
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+    raise HTTPException(status_code=422, detail="Provide either event_id or anomaly.")

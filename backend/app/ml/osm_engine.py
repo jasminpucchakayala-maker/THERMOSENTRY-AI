@@ -10,10 +10,11 @@ from backend.app.utils.logging_config import logger
 class OSMEngine:
     """OpenStreetMap spatial engine to query and assess nearby industrial infrastructure."""
 
-    def __init__(self, search_radius_km: float = 5.0):
+    def __init__(self, search_radius_km: float = settings.OSM_SEARCH_RADIUS_KM):
         self.search_radius_km = search_radius_km
         self.sample_file = settings.SAMPLE_DATA_DIR / "osm_industrial_sample.json"
-        self.overpass_url = "https://overpass-api.de/api/interpreter"
+        self.overpass_url = settings.OVERPASS_URL
+        self._context_cache: Dict[Tuple[float, float, bool], OSMIndustrialContext] = {}
 
     async def fetch_live_overpass_facilities(self, lat: float, lon: float) -> Tuple[List[IndustrialFacility], Optional[str]]:
         """Queries OpenStreetMap Overpass API for industrial tags within radius."""
@@ -33,7 +34,7 @@ class OSMEngine:
         out center 10;
         """
         try:
-            async with httpx.AsyncClient(timeout=6.0) as client:
+            async with httpx.AsyncClient(timeout=settings.OSM_TIMEOUT_SECONDS) as client:
                 response = await client.post(self.overpass_url, data={"data": overpass_query})
 
             if response.status_code == 200:
@@ -43,7 +44,7 @@ class OSMEngine:
 
                 for el in elements:
                     tags = el.get("tags", {})
-                    name = tags.get("name") or tags.get("operator") or f"Industrial Site ({el.get('type')}/{el.get('id')})"
+                    name = tags.get("name") or tags.get("operator")
                     ind_type = tags.get("industrial") or tags.get("landuse") or tags.get("power") or "Industrial Zone"
                     
                     # Determine lat/lon from node or way center
@@ -53,7 +54,7 @@ class OSMEngine:
                     dist = round(haversine_distance_km(lat, lon, el_lat, el_lon), 2)
                     if dist <= self.search_radius_km:
                         facilities.append(IndustrialFacility(
-                            name=name.title(),
+                            name=name.title() if name else None,
                             type=ind_type.title(),
                             distance_km=dist,
                             latitude=round(el_lat, 4),
@@ -141,6 +142,9 @@ class OSMEngine:
 
     async def get_industrial_context(self, lat: float, lon: float, use_live: bool = True) -> OSMIndustrialContext:
         """Evaluates industrial context around coordinates using live Overpass API or local offline fallback."""
+        cache_key = (round(lat, 4), round(lon, 4), use_live)
+        if cache_key in self._context_cache:
+            return self._context_cache[cache_key]
         facilities = []
         source = "OpenStreetMap Overpass API (Live)"
 
@@ -148,7 +152,7 @@ class OSMEngine:
             facilities, err = await self.fetch_live_overpass_facilities(lat, lon)
             if err or not facilities:
                 facilities = self.load_local_sample_facilities(lat, lon)
-                source = "OpenStreetMap (Local Infrastructure Cache)"
+                source = "OpenStreetMap (Local Infrastructure Cache)" if facilities else "OpenStreetMap / Overpass (No facility found)"
         else:
             facilities = self.load_local_sample_facilities(lat, lon)
             source = "OpenStreetMap (Local Infrastructure Cache)"
@@ -163,7 +167,7 @@ class OSMEngine:
 
         risk_mod = self.calculate_risk_modifier(facilities)
 
-        return OSMIndustrialContext(
+        context = OSMIndustrialContext(
             has_nearby_industrial=has_nearby,
             nearest_facility_name=nearest_name,
             nearest_facility_type=nearest_type,
@@ -174,5 +178,7 @@ class OSMEngine:
             risk_modifier=risk_mod,
             source=source
         )
+        self._context_cache[cache_key] = context
+        return context
 
 osm_engine = OSMEngine()

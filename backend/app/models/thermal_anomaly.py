@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field, field_validator
 class ThermalAnomaly(BaseModel):
     """Normalized thermal anomaly data model representing a satellite detection event."""
     id: str = Field(..., description="Unique hash ID derived from anomaly spatial-temporal attributes")
+    firms_id: Optional[str] = Field(default=None, description="Original NASA FIRMS record identifier when provided")
+    event_id: Optional[str] = Field(default=None, description="Deterministic THERMOSENTRY internal event identifier")
     latitude: float = Field(..., ge=-90.0, le=90.0, description="Latitude coordinate in WGS84")
     longitude: float = Field(..., ge=-180.0, le=180.0, description="Longitude coordinate in WGS84")
     acquisition_date: str = Field(..., description="Acquisition date (YYYY-MM-DD)")

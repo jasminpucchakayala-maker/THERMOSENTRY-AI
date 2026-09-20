@@ -6,6 +6,8 @@ from backend.app.api.classification_api import router as classification_router
 from backend.app.api.persistence_api import router as persistence_router
 from backend.app.api.osm_api import router as osm_router
 from backend.app.api.decision_api import router as decision_router
+from backend.app.api.intelligence_api import router as intelligence_router
+from backend.app.api.report_api import router as report_router
 from backend.app.utils.logging_config import logger
 
 from contextlib import asynccontextmanager
@@ -38,6 +40,8 @@ app.include_router(classification_router)
 app.include_router(persistence_router)
 app.include_router(osm_router)
 app.include_router(decision_router)
+app.include_router(intelligence_router)
+app.include_router(report_router)
 
 if __name__ == "__main__":
     import uvicorn

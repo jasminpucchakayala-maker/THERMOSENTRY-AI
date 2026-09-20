@@ -6,6 +6,7 @@ from backend.app.models.decision_intelligence import (
     RiskAssessment,
     DecisionIntelligenceAnomaly
 )
+from backend.app.config import settings
 
 class ExplainableRiskEngine:
     """Multi-factor risk assessment engine calculating composite risk scores and operational recommendations."""
@@ -17,7 +18,7 @@ class ExplainableRiskEngine:
         """
         frp = float(anomaly.frp) if anomaly.frp is not None else 0.0
         brightness = float(anomaly.brightness_temperature) if anomaly.brightness_temperature is not None else 300.0
-        confidence = float(anomaly.confidence) if anomaly.confidence is not None else 50.0
+        confidence = float(anomaly.confidence) if anomaly.confidence is not None else None
 
         category = anomaly.classification.category
         p_info = anomaly.persistence
@@ -47,7 +48,20 @@ class ExplainableRiskEngine:
         industrial_modifier = osm_info.risk_modifier
 
         # 5. Composite Risk Score Calculation
-        raw_score = base_physical * cat_weight * persistence_factor * industrial_modifier
+        available_weights = settings.RISK_WEIGHT_THERMAL_INTENSITY + settings.RISK_WEIGHT_PERSISTENCE + settings.RISK_WEIGHT_INDUSTRIAL_PROXIMITY
+        if confidence is not None:
+            available_weights += settings.RISK_WEIGHT_CONFIDENCE
+        confidence_factor = (confidence / 100.0) if confidence is not None else None
+        thermal_factor = min(1.0, base_physical / 65.0)
+        persistence_factor_score = p_info.persistence_score
+        industrial_factor = min(1.0, max(0.0, (industrial_modifier - 1.0) / 1.5))
+        weighted_score = (
+            thermal_factor * settings.RISK_WEIGHT_THERMAL_INTENSITY
+            + persistence_factor_score * settings.RISK_WEIGHT_PERSISTENCE
+            + industrial_factor * settings.RISK_WEIGHT_INDUSTRIAL_PROXIMITY
+            + (confidence_factor or 0.0) * settings.RISK_WEIGHT_CONFIDENCE
+        ) / max(available_weights, 1.0)
+        raw_score = weighted_score * 100.0 * cat_weight * persistence_factor * industrial_modifier
         composite_score = round(min(100.0, max(5.0, raw_score)), 1)
 
         # 6. Assign Risk Level
@@ -81,7 +95,10 @@ class ExplainableRiskEngine:
             "base_physical_score": round(base_physical, 1),
             "category_weight": cat_weight,
             "persistence_factor": round(persistence_factor, 2),
-            "industrial_risk_modifier": industrial_modifier
+            "industrial_risk_modifier": industrial_modifier,
+            "confidence": confidence if confidence is not None else None,
+            "exposure": {"available": False, "value": None},
+            "vulnerability": {"available": bool(osm_info.has_nearby_industrial), "value": industrial_factor if osm_info.has_nearby_industrial else None},
         }
 
         reasons = [
@@ -99,7 +116,15 @@ class ExplainableRiskEngine:
             risk_level=level,
             action_recommendation=rec,
             risk_factors=factors,
-            explanation=explanation_str
+            explanation=explanation_str,
+            factors={
+                "thermal_intensity": {"available": True, "value": round(thermal_factor, 3)},
+                "persistence": {"available": True, "value": round(persistence_factor_score, 3)},
+                "industrial_proximity": {"available": True, "value": round(industrial_factor, 3)},
+                "confidence": {"available": confidence is not None, "value": confidence_factor},
+                "exposure": {"available": False, "value": None},
+                "vulnerability": {"available": bool(osm_info.has_nearby_industrial), "value": industrial_factor if osm_info.has_nearby_industrial else None},
+            }
         )
 
     def evaluate_decision_anomaly(self, anomaly: EnrichedThermalAnomaly) -> DecisionIntelligenceAnomaly:

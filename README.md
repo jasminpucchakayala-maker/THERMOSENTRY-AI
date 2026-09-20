@@ -117,6 +117,20 @@ Run the backend test suite:
   }
   ```
 
+## Backend Intelligence APIs
+
+The backend preserves the live FIRMS endpoint and exposes the staged intelligence pipeline:
+
+- `GET /api/classified-anomalies` - baseline rule-based classification with evidence and method metadata.
+- `GET /api/persistent-anomalies` and `GET /api/persistent-clusters` - configurable spatial-temporal persistence analysis.
+- `GET /api/enriched-anomalies` and `GET /api/nearby-industrial` - OpenStreetMap/Overpass industrial context, with transparent offline cache fallback.
+- `GET /api/decision-intelligence` - combined classification, persistence, OSM, and explainable risk output.
+- `GET /api/classification/{event_id}`, `/api/persistence/{event_id}`, `/api/industrial-context/{event_id}`, `/api/risk/{event_id}`, `/api/decision/{event_id}` - event-level views.
+- `POST /api/decision/analyze` - accepts `{ "event_id": "..." }` or `{ "anomaly": { ... } }`.
+- `GET /api/reports/{event_id}` - downloads an HTML report generated from the analyzed event.
+
+Classification is explicitly labeled `baseline`; it is not a trained ML model. Exposure and vulnerability remain unavailable unless backed by measured data. Configure timeouts, persistence thresholds, OSM radius, and risk weights through environment variables described in `.env.example`.
+
 ### 2. Thermal Anomalies Ingestion
 * **Endpoint**: `GET /api/thermal-anomalies`
 * **Query Parameters**:

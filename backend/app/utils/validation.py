@@ -50,7 +50,7 @@ def validate_time(time_str: str) -> str:
     if time_str is None:
         return "0000"
     t = str(time_str).strip().zfill(4)
-    if re.match(r"^\d{4}$", t):
+    if re.match(r"^\d{4}$", t) and int(t[:2]) < 24 and int(t[2:]) < 60:
         return t
     return "0000"
 
@@ -102,9 +102,13 @@ def clean_and_normalize_record(row: Dict[str, Any], source_name: str = "NASA FIR
 
     # Generate unique composite ID
     record_id = ThermalAnomaly.generate_id(lat_val, lon_val, norm_date, norm_time, satellite)
+    original_id = clean_row.get("id") or clean_row.get("firms_id") or clean_row.get("record_id")
+    event_id = f"TH-{record_id.upper()}"
 
     anomaly = ThermalAnomaly(
         id=record_id,
+        firms_id=str(original_id).strip() if original_id else None,
+        event_id=event_id,
         latitude=round(lat_val, 4),
         longitude=round(lon_val, 4),
         acquisition_date=norm_date,

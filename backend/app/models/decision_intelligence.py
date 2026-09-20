@@ -15,8 +15,10 @@ class RiskAssessment(BaseModel):
     composite_risk_score: float = Field(..., ge=0.0, le=100.0, description="Normalized multi-factor risk score (0.0 - 100.0)")
     risk_level: RiskLevel = Field(..., description="Overall risk rating (CRITICAL, HIGH, MEDIUM, LOW)")
     action_recommendation: str = Field(..., description="Actionable operational emergency recommendation")
-    risk_factors: Dict[str, float] = Field(..., description="Numerical risk factor breakdown contributions")
+    risk_factors: Dict[str, Any] = Field(..., description="Risk factor values, availability, and contributions")
     explanation: str = Field(..., description="Transparent explanation detailing why the anomaly is considered risky")
+    factors: Dict[str, Any] = Field(default_factory=dict, description="Explainable factor values and availability")
+    source: str = Field(default="THERMOSENTRY Risk Engine", description="Risk assessment provenance")
 
 class DecisionIntelligenceAnomaly(EnrichedThermalAnomaly):
     """Full decision intelligence model synthesizing satellite detection, AI classification, persistence, OSM context, and risk assessment."""

@@ -4,7 +4,7 @@ from backend.app.models.persistence import PersistentThermalAnomaly
 
 class IndustrialFacility(BaseModel):
     """Industrial infrastructure facility model from OpenStreetMap."""
-    name: str = Field(..., description="Name of the facility or industrial site")
+    name: Optional[str] = Field(default=None, description="Name of the facility or industrial site when OSM provides one")
     type: str = Field(..., description="Category (e.g., Oil Refinery, Power Plant, Chemical Complex, Industrial Zone)")
     distance_km: float = Field(..., ge=0.0, description="Spatial distance from thermal anomaly in kilometers")
     latitude: float = Field(..., ge=-90.0, le=90.0, description="Facility latitude coordinate")
