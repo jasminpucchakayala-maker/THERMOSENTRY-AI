@@ -1,19 +1,6 @@
 import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-const anomalyPoints = [
-  { lat: 16.5062, lon: 80.648, level: 'high' },
-  { lat: 16.512, lon: 80.651, level: 'critical' },
-  { lat: 21.1458, lon: 79.0882, level: 'medium' },
-  { lat: 22.5726, lon: 88.3639, level: 'high' },
-  { lat: 12.9716, lon: 77.5946, level: 'low' },
-  { lat: 19.076, lon: 72.8777, level: 'critical' },
-  { lat: 28.7041, lon: 77.1025, level: 'medium' },
-  { lat: 23.0225, lon: 72.5714, level: 'high' },
-  { lat: 17.385, lon: 78.4867, level: 'low' },
-  { lat: 13.0827, lon: 80.2707, level: 'medium' },
-]
-
 function createEarthTexture() {
   const canvas = document.createElement('canvas')
   canvas.width = 1024
@@ -97,7 +84,7 @@ function latLonToVector(lat, lon, radius) {
   )
 }
 
-function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalEnabled, cloudsEnabled, dayMode = false, zoomDelta = 0, resetSignal = 0, onMarkerSelect, onMarkerHover }) {
+function GlobeView({ anomalies = [], rotationEnabled, thermalEnabled, satelliteEnabled, orbitalEnabled, cloudsEnabled, dayMode = false, zoomDelta = 0, resetSignal = 0, onMarkerSelect, onMarkerHover }) {
   const mountRef = useRef(null)
   const settingsRef = useRef({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalEnabled, cloudsEnabled, dayMode, zoomDelta, resetSignal, onMarkerSelect, onMarkerHover })
 
@@ -157,9 +144,10 @@ function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalE
 
     const markerGroup = new THREE.Group()
     const heatTexture = createHeatTexture()
-    anomalyPoints.forEach((point, index) => {
-      const intensity = point.level === 'critical' ? 1 : point.level === 'high' ? 0.78 : 0.56
-      const surfacePoint = latLonToVector(point.lat, point.lon, 1.405)
+    anomalies.forEach((point, index) => {
+      const confidence = Number(point.confidence)
+      const intensity = Number.isFinite(confidence) ? Math.min(1, Math.max(0.45, confidence / 100)) : 0.65
+      const surfacePoint = latLonToVector(point.latitude, point.longitude, 1.405)
       const surfaceNormal = surfacePoint.clone().normalize()
       const marker = new THREE.Group()
       const patchSize = 0.28 + intensity * 0.18
@@ -168,9 +156,9 @@ function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalE
         sprite.scale.set(scale, scale, 1)
         return sprite
       }
-      const plume = createHeatSprite(point.level === 'critical' ? '#d9362d' : '#f06e32', 0.2 * intensity, patchSize * 2.5)
-      const patch = createHeatSprite(point.level === 'critical' ? '#ff5032' : '#ff843f', 0.48 * intensity, patchSize * 1.45)
-      const innerPatch = createHeatSprite(point.level === 'critical' ? '#ffb22e' : '#ffd052', 0.62 * intensity, patchSize * 0.7)
+      const plume = createHeatSprite('#d9362d', 0.2 * intensity, patchSize * 2.5)
+      const patch = createHeatSprite('#ff5032', 0.48 * intensity, patchSize * 1.45)
+      const innerPatch = createHeatSprite('#ffb22e', 0.62 * intensity, patchSize * 0.7)
       const core = createHeatSprite('#fff4a8', 0.94, patchSize * 0.24)
       marker.position.copy(surfacePoint.clone().add(surfaceNormal.multiplyScalar(0.018)))
       marker.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), surfaceNormal)
@@ -178,7 +166,7 @@ function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalE
       innerPatch.position.z = 0.006
       core.position.z = 0.012
       marker.add(plume, patch, innerPatch, core)
-      marker.userData = { plume, patch, innerPatch, core, plumeScale: plume.scale.x, patchScale: patch.scale.x, innerScale: innerPatch.scale.x, coreScale: core.scale.x, phase: index * 0.8, intensity, event: { label: `Thermal event ${String(index + 1).padStart(2, '0')}`, level: point.level.toUpperCase(), location: point.location || 'India region' } }
+      marker.userData = { plume, patch, innerPatch, core, plumeScale: plume.scale.x, patchScale: patch.scale.x, innerScale: innerPatch.scale.x, coreScale: core.scale.x, phase: index * 0.8, intensity, event: point }
       markerGroup.add(marker)
     })
     globeGroup.add(markerGroup)
@@ -274,7 +262,7 @@ function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalE
     const handlePointerMove = (event) => settingsRef.current.onMarkerHover?.(findMarker(event))
     const handleClick = (event) => {
       const markerEvent = findMarker(event)
-      if (markerEvent) settingsRef.current.onMarkerSelect?.({ ...event, id: 'TH-2026-000142', className: 'Industrial Fire', confidence: '94.7%', frp: '412.6 MW', risk: 78 })
+      if (markerEvent) settingsRef.current.onMarkerSelect?.(markerEvent)
     }
     renderer.domElement.addEventListener('pointermove', handlePointerMove)
     renderer.domElement.addEventListener('click', handleClick)
@@ -333,7 +321,7 @@ function GlobeView({ rotationEnabled, thermalEnabled, satelliteEnabled, orbitalE
       renderer.dispose()
       mount.removeChild(renderer.domElement)
     }
-  }, [])
+  }, [anomalies])
 
   return <div className="globe-stage" ref={mountRef} aria-label="Interactive 3D Earth showing satellite thermal anomalies" />
 }

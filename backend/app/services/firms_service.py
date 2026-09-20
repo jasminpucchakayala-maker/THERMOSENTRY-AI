@@ -29,7 +29,7 @@ class FIRMSService:
         if not self.api_key:
             return None, "NASA FIRMS API key (FIRMS_API_KEY) is missing. Set it in .env to enable live NASA requests."
 
-        url = f"{self.base_url}/country/csv/{self.api_key}/{source}/{country}/{days}"
+        url = f"{self.base_url}/area/csv/{self.api_key}/{source}/68,6,98,36/{days}"
         logger.info(f"FIRMS request started: source={source}, country={country}, days={days}")
 
         try:
