@@ -41,13 +41,18 @@ class FIRMSService:
                 if not content or "Invalid MAP_KEY" in content or "Error" in content[:100]:
                     logger.warning("FIRMS API returned invalid response or invalid MAP_KEY.")
                     return None, f"NASA FIRMS API Key rejection or server error: {content[:100].strip()}"
-                
+
                 logger.info(f"FIRMS request completed successfully: Received {len(content)} bytes")
                 return content, None
             else:
-                err = f"NASA FIRMS API HTTP Error: status_code={response.status_code}"
-                logger.warning(err)
-                return None, err
+                response_preview = response.text[:500].strip()
+                error_msg = (
+                    "NASA FIRMS API HTTP Error: "
+                    f"status_code={response.status_code}, "
+                    f"response={response_preview}"
+                )
+                logger.warning(error_msg)
+                return None, error_msg
 
         except httpx.TimeoutException:
             logger.error("FIRMS request timed out after 15 seconds.")
