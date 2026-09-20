@@ -1,122 +1,43 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { Activity, AlertTriangle, BarChart3, ChevronRight, Eye, Flame, Gauge, Layers3, MapPin, Menu, Moon, Pause, Play, Plus, Radio, RotateCcw, Satellite, Settings2, SlidersHorizontal, Sun, X, Minus, Wifi } from 'lucide-react'
+import GlobeView from './GlobeView.jsx'
 import './App.css'
 
+const navItems = [
+  { label: 'Overview', icon: Gauge }, { label: 'Live Orbit', icon: Satellite },
+  { label: 'Thermal Events', icon: Flame }, { label: 'Persistent Sources', icon: Layers3 },
+  { label: 'Industrial Context', icon: BarChart3 }, { label: 'Risk Intelligence', icon: AlertTriangle }, { label: 'Reports', icon: BarChart3 },
+]
+const selectedEvent = { id: 'TH-2026-000142', location: '14.5995 N, 20.6871 E', className: 'Industrial Fire', confidence: '94.7%', frp: '412.6 MW', risk: 78 }
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeNav, setActiveNav] = useState('Overview')
+  const [rotationEnabled, setRotationEnabled] = useState(true)
+  const [thermalEnabled, setThermalEnabled] = useState(true)
+  const [satelliteEnabled, setSatelliteEnabled] = useState(true)
+  const [orbitalEnabled, setOrbitalEnabled] = useState(true)
+  const [cloudsEnabled, setCloudsEnabled] = useState(true)
+  const [nightMode, setNightMode] = useState(true)
+  const [investigationOpen, setInvestigationOpen] = useState(true)
+  const [hoveredEvent, setHoveredEvent] = useState(null)
+  const [zoomDelta, setZoomDelta] = useState(0)
+  const [resetSignal, setResetSignal] = useState(0)
+  const controls = [['THERMAL', thermalEnabled, setThermalEnabled], ['SATELLITE', satelliteEnabled, setSatelliteEnabled], ['ORBITAL', orbitalEnabled, setOrbitalEnabled], ['CLOUDS', cloudsEnabled, setCloudsEnabled]]
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+  return <div className={`mission-shell ${nightMode ? '' : 'day-mode'}`}>
+    <header className="mission-header"><div className="header-brand"><div className="brand-orbit"><Activity size={20} /></div><div><strong>THERMOSENTRY <b>AI</b></strong><small>SATELLITE THERMAL INTELLIGENCE</small></div></div><div className="header-feed"><span className="live-dot" /> <strong>LIVE ORBITAL FEED</strong><small>Real-time satellite data</small></div><div className="header-readout"><div><Radio size={16} /><span>NASA FIRMS<small>MODIS / VIIRS</small></span></div><div><span className="clock-mark">◷</span><span>LAST SYNC<small>Sep 13, 2026 14:32 UTC</small></span></div><div><Wifi size={17} /><span>SYSTEM HEALTH<small className="green">Operational</small></span></div></div><div className="header-actions"><button aria-label="Day and night mode" onClick={() => setNightMode(!nightMode)}>{nightMode ? <Sun size={15} /> : <Moon size={15} />}<Moon size={14} /></button><button aria-label="Auto rotate" className={rotationEnabled ? 'header-toggle on' : 'header-toggle'} onClick={() => setRotationEnabled(!rotationEnabled)}><RotateCcw size={14} /> Auto Rotate <i /></button><button aria-label="Settings"><SlidersHorizontal size={16} /></button></div></header>
+    <aside className={`mission-sidebar ${sidebarOpen ? 'is-open' : ''}`}><button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={18} /></button><nav>{navItems.map(({ label, icon: Icon }) => <button key={label} className={activeNav === label ? 'active' : ''} onClick={() => { setActiveNav(label); setSidebarOpen(false) }}><Icon size={19} /><span>{label}</span></button>)}</nav><div className="sidebar-bottom"><button><Settings2 size={18} /> Settings</button><div className="sidebar-operator"><span>AR</span><div><strong>Alex Rao</strong><small>Mission control</small></div></div></div></aside>
+    <main className="mission-stage"><button className="mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={20} /></button><section className="legend-panel"><div className="overlay-heading"><strong>THERMAL EVENT TYPES</strong><i /></div><LegendItem tone="fire" label="Industrial Fire" /><LegendItem tone="gas" label="Gas Flare" /><LegendItem tone="vegetation" label="Vegetation Fire" /><LegendItem tone="agriculture" label="Agricultural Burning" /><LegendItem tone="persistent" label="Persistent Source" /><LegendItem tone="uncertain" label="Uncertain Anomaly" /></section><section className="telemetry-panel"><div className="overlay-heading"><strong>SATELLITE TELEMETRY</strong></div><div className="sat-illustration"><Satellite size={47} /><span className="solar-wing left" /><span className="solar-wing right" /></div><div className="sat-name"><strong>NOAA-21 (VIIRS)</strong><span><i /> Active</span><b>LEO 1:30 PM</b></div><div className="telemetry-grid"><div><span>ALTITUDE</span><strong>832 km</strong></div><div><span>SWATH</span><strong>3,840 km</strong></div><div><span>RESOLUTION</span><strong>375 m <b>(I-Bands)</b></strong></div></div></section><div className="globe-label noaa20"><strong>NOAA-20</strong><small>VIIRS</small></div><div className="globe-label noaa21"><strong>NOAA-21</strong><small>VIIRS</small></div><div className="globe-label suomi"><strong>Suomi-NPP</strong><small>VIIRS</small></div><div className="globe-stage-wrap"><GlobeView rotationEnabled={rotationEnabled} thermalEnabled={thermalEnabled} satelliteEnabled={satelliteEnabled} orbitalEnabled={orbitalEnabled} cloudsEnabled={cloudsEnabled} dayMode={!nightMode} zoomDelta={zoomDelta} resetSignal={resetSignal} onMarkerHover={setHoveredEvent} /></div>{hoveredEvent && <div className="marker-tooltip"><strong>{hoveredEvent.label}</strong><span>{hoveredEvent.level} / {hoveredEvent.location}</span></div>}<div className="globe-tools"><button aria-label="Center view"><MapPin size={16} /></button><button onClick={() => setZoomDelta((value) => value + .35)} aria-label="Zoom in"><Plus size={18} /></button><button onClick={() => setZoomDelta((value) => value - .35)} aria-label="Zoom out"><Minus size={18} /></button><button aria-label="3D view">3D</button></div><div className="globe-controls"><button onClick={() => setRotationEnabled(!rotationEnabled)}><span>{rotationEnabled ? <Pause size={13} /> : <Play size={13} />}</span>{rotationEnabled ? 'Pause Rotation' : 'Resume Rotation'}</button><button><Eye size={14} /> Inspect Location</button><button onClick={() => setResetSignal((value) => value + 1)}><RotateCcw size={14} /> Reset View</button></div><div className="layer-dock">{controls.map(([label, value, setValue]) => <button key={label} className={value ? 'enabled' : ''} onClick={() => setValue(!value)} aria-pressed={value}><i /> {label}</button>)}</div>
+    </main>
+    {investigationOpen && <aside className="investigation-panel"><div className="investigation-heading"><strong>EVENT INVESTIGATION</strong><button onClick={() => setInvestigationOpen(false)} aria-label="Close investigation"><X size={17} /></button></div><div className="event-card"><div className="event-image"><Flame size={29} /><small>IR - 375m</small></div><div><span className="event-code"><Flame size={12} /> EVENT ID</span><strong>{selectedEvent.id}</strong><span><MapPin size={12} /> {selectedEvent.location}</span><small>Near Agadez, Niger</small></div><b className="risk-tag">High Risk</b></div><div className="investigation-data"><DataRow label="Acquisition Time" value="Sep 13, 2026 13:42 UTC" /><DataRow label="Satellite Source" value="NOAA-20 (VIIRS)" accent /><DataRow label="Predicted Class" value={selectedEvent.className} red /><DataRow label="Model Confidence" value={selectedEvent.confidence} accent /><DataRow label="Fire Radiative Power" value={selectedEvent.frp} orange /><DataRow label="Persistence Status" value="Repeated (3/5 passes)" /><DataRow label="Nearest Industrial Facility" value="Agadez Gas Plant" /><DataRow label="Distance to Facility" value="18.4 km" /></div><div className="risk-level"><span>Risk Level</span><strong>High <b>78</b></strong></div><button className="open-investigation">Open Investigation <ChevronRight size={17} /></button><RiskDna /><Timeline /></aside>}
+    {!investigationOpen && <button className="reopen-investigation" onClick={() => setInvestigationOpen(true)} aria-label="Open investigation"><SlidersHorizontal size={16} /></button>}
+    <section className="bottom-analytics"><AnalyticsCard icon={Flame} label="ACTIVE THERMAL EVENTS" value="32" change="↑ 6%" tone="orange" chart="M 0 25 C 28 25 34 21 56 23 S 78 11 96 23 S 117 7 132 22 S 151 8 164 9" /><AnalyticsCard icon={AlertTriangle} label="HIGH-RISK EVENTS" value="7" change="↑ 75%" tone="red" chart="M 0 28 L 27 25 L 52 27 L 76 18 L 98 22 L 119 13 L 143 19 L 166 7" /><AnalyticsCard icon={Layers3} label="PERSISTENT SOURCES" value="12" change="↑ 9%" tone="cyan" chart="M 0 23 C 25 25 42 29 58 20 S 81 14 96 24 S 126 4 142 22 S 156 17 166 4" /><AnalyticsCard icon={BarChart3} label="INDUSTRIAL CONTEXT" value="5" change="↑ 40%" tone="teal" chart="M 0 29 L 30 24 L 52 27 L 73 18 L 94 21 L 116 8 L 139 18 L 166 7" /><div className="sat-update"><Satellite size={26} /><div><span>LATEST SATELLITE UPDATE</span><strong>NOAA-21 (VIIRS)</strong><small>14:32 UTC · 375m Raw</small><a>View Details <ChevronRight size={13} /></a></div></div></section>
+  </div>
 }
-
+function LegendItem({ tone, label }) { return <div className="legend-item"><i className={tone}>{tone === 'fire' ? '♨' : tone === 'gas' ? '●' : tone === 'vegetation' ? '✓' : tone === 'agriculture' ? '♨' : tone === 'persistent' ? '◆' : '!'}</i><span>{label}</span></div> }
+function DataRow({ label, value, accent, red, orange }) { return <div className="data-row"><span>{label}</span><strong className={`${accent ? 'cyan-text' : ''}${red ? ' red-text' : ''}${orange ? ' orange-text' : ''}`}>{value}</strong></div> }
+function RiskDna() { return <section className="risk-dna"><div className="subpanel-heading"><strong>RISK DNA</strong><span>Normalized Index</span></div><div className="dna-content"><div className="dna-donut"><b>78<small>TOTAL RISK</small></b></div><div className="dna-legend"><span><i className="red-bg" /> Thermal Intensity <b>28%</b></span><span><i className="orange-bg" /> Persistence <b>22%</b></span><span><i className="yellow-bg" /> Industrial Proximity <b>18%</b></span><span><i className="purple-bg" /> Exposure <b>17%</b></span><span><i className="green-bg" /> Vulnerability <b>15%</b></span></div></div></section> }
+function Timeline() { return <section className="event-timeline"><div className="subpanel-heading"><strong>EVENT TIMELINE</strong><a>View All <ChevronRight size={12} /></a></div><div className="timeline-entry"><i className="red-bg" /><time>13:42</time><span>Thermal anomaly detected</span></div><div className="timeline-entry"><i className="orange-bg" /><time>13:48</time><span>Classified as Industrial Fire</span></div><div className="timeline-entry"><i className="cyan-bg" /><time>14:05</time><span>Risk score updated (78)</span></div><div className="timeline-entry"><i className="green-bg" /><time>14:21</time><span>Monitoring (3/5 passes)</span></div></section> }
+function AnalyticsCard({ icon: Icon, label, value, change, tone, chart }) { const chartId = `chart-${tone}-${label.replaceAll(' ', '-').toLowerCase()}`; return <div className="analytics-card"><Icon size={18} className={tone} /><div><span>{label}</span><strong>{value} <small className={tone}>{change}</small></strong></div><svg className="sparkline" viewBox="0 0 166 34" preserveAspectRatio="none" role="img" aria-label={`${label} trend`}><defs><linearGradient id={chartId} x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".3" /><stop offset="1" stopColor="currentColor" stopOpacity="0" /></linearGradient></defs><path className="spark-area" d={`${chart} L 166 34 L 0 34 Z`} fill={`url(#${chartId})`} /><path className="spark-line" d={chart} /><circle className="spark-end" cx="166" cy="9" r="2.5" /></svg></div> }
 export default App

@@ -1,0 +1,89 @@
+[
+  {
+    "name": "Visakha Refinery (HPCL Complex)",
+    "type": "Oil Refinery",
+    "latitude": 16.5085,
+    "longitude": 80.6492,
+    "osm_id": "way/1029384",
+    "tags": {
+      "industrial": "refinery",
+      "landuse": "industrial",
+      "operator": "HPCL"
+    }
+  },
+  {
+    "name": "Coromandel International Chemical & Fertilizer Plant",
+    "type": "Chemical Facility",
+    "latitude": 16.5135,
+    "longitude": 80.6530,
+    "osm_id": "way/1029385",
+    "tags": {
+      "industrial": "chemical",
+      "landuse": "industrial"
+    }
+  },
+  {
+    "name": "Nagpur Industrial Development Corporation Estate",
+    "type": "Industrial Zone",
+    "latitude": 21.1480,
+    "longitude": 79.0895,
+    "osm_id": "way/2039481",
+    "tags": {
+      "landuse": "industrial"
+    }
+  },
+  {
+    "name": "Kolkata Chemical & Manufacturing Hub",
+    "type": "Chemical Facility",
+    "latitude": 22.5750,
+    "longitude": 88.3650,
+    "osm_id": "way/3049582",
+    "tags": {
+      "industrial": "factory",
+      "landuse": "industrial"
+    }
+  },
+  {
+    "name": "Trombay Petroleum & Gas Terminal (BPCL/IOCL)",
+    "type": "Gas & Petroleum Terminal",
+    "latitude": 19.0740,
+    "longitude": 72.8790,
+    "osm_id": "way/4059683",
+    "tags": {
+      "man_made": "storage_tank",
+      "industrial": "oil"
+    }
+  },
+  {
+    "name": "Ahmedabad Textile & Chemical Industrial Area",
+    "type": "Industrial Zone",
+    "latitude": 23.0240,
+    "longitude": 72.5730,
+    "osm_id": "way/5069784",
+    "tags": {
+      "landuse": "industrial"
+    }
+  },
+  {
+    "name": "National Thermal Power Station (NTPC)",
+    "type": "Power Plant",
+    "latitude": 17.3870,
+    "longitude": 78.4890,
+    "osm_id": "way/6079885",
+    "tags": {
+      "power": "plant",
+      "plant:source": "coal"
+    }
+  },
+  {
+    "name": "Manali Petrochemical & Refinery Complex",
+    "type": "Oil Refinery",
+    "latitude": 13.0850,
+    "longitude": 80.2720,
+    "osm_id": "way/7089986",
+    "tags": {
+      "industrial": "refinery",
+      "landuse": "industrial"
+    }
+  }
+]

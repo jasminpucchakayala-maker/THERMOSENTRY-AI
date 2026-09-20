@@ -1,0 +1,38 @@
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# Application Data (keep folder structure, ignore raw/processed generated files)
+backend/data/raw/*.csv
+backend/data/raw/*.json
+backend/data/processed/*.csv
+backend/data/processed/*.json
+!backend/data/raw/.gitkeep
+!backend/data/processed/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Frontend Node modules & builds
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# IDEs & System
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
